@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>분석 결과</title>
+</head>
+<body>
+    <h1>📊 분석 결과</h1>
+
+    <h2>사람별 기여도</h2>
+    <ul>
+        {% for name, score in contrib.items() %}
+            <li>{{ name }} : {{ "%.3f"|format(score) }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>전체 메시지 중요도 테이블</h2>
+    {{ tables|safe }}
+
+    <br>
+    <a href="/">돌아가기</a>
+</body>
+</html>
