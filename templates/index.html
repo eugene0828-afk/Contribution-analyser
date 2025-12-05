@@ -4,17 +4,17 @@
     <title>Group Project Contribution Analyzer</title>
 </head>
 <body>
-    <h1>📥 Upload Conversation Log</h1>
+    <h1>📥 Upload Conversation log</h1>
 
-    <div style="margin-bottom: 15px;">
-        <h3>Usage Instructions</h3>
-        <p>
-            1) Use KakaoTalk’s <strong>“Export Chat”</strong> feature to download the conversation log as a <strong>.txt</strong> file.<br>
-            2) Upload the <strong>.txt</strong> file using the form below.<br>
-            3) Click the <strong>Analyse</strong> button to begin the analysis.
-        </p>
+    <!-- 설명문 -->
+    <div style="margin-bottom: 20px; font-size: 16px; line-height: 1.5;">
+        <strong>Usage Instructions</strong><br>
+        1) Use KakaoTalk's <strong>"Export Chat"</strong> feature to download the conversation log as a <strong>.txt</strong> file.<br>
+        2) Upload the <strong>.txt</strong> file using the form below.<br>
+        3) Click the <strong>Analyse</strong> button to begin the analysis.
     </div>
 
+    <!-- 업로드 폼 -->
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="file" accept=".txt" required>
         <button type="submit">Analyse</button>
