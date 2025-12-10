@@ -18,6 +18,7 @@ corpus_df = pd.read_csv(
 corpus_df = corpus_df.dropna(subset=["content"])
 corpus = corpus_df["content"].astype(str).tolist()
 
+# norm=None : 나중에 우리가 직접 norm(벡터 길이)을 쓰기 위해
 vectorizer = TfidfVectorizer(token_pattern=r"(?u)\b\w+\b", norm=None)
 vectorizer.fit(corpus)
 
@@ -62,11 +63,17 @@ def parse_kakao(text):
 
 
 # --------------------------------------------------------------
-# 3) 문장 중요도 계산 (학습된 vectorizer 사용)
+# 3) 문장 중요도 + 토큰 계산 (학습된 vectorizer 사용)
 # --------------------------------------------------------------
 def compute_importance(df):
+    # TF-IDF 벡터
     X = vectorizer.transform(df["content"])
     df["importance"] = np.linalg.norm(X.toarray(), axis=1)
+
+    # TF-IDF에서 사용하는 토크나이저 그대로 사용
+    analyzer = vectorizer.build_analyzer()
+    df["tokens"] = df["content"].apply(analyzer)
+
     return df
 
 
@@ -82,12 +89,41 @@ def index():
         df = parse_kakao(text)
         df = compute_importance(df)
 
-        contrib = df.groupby("name")["importance"].sum().sort_values(ascending=False)
+        # --------------------------------------------------
+        # 사람별 단어 다양성 계산
+        #   - total : 전체 단어 수
+        #   - unique : 서로 다른 단어의 set
+        # --------------------------------------------------
+        token_stats = {}
+
+        for _, row in df.iterrows():
+            name = row["name"]
+            toks = row["tokens"]
+
+            if name not in token_stats:
+                token_stats[name] = {"total": 0, "unique": set()}
+
+            token_stats[name]["total"] += len(toks)
+            token_stats[name]["unique"].update(toks)
+
+        # diversity = (서로 다른 단어 수) / (전체 단어 수)
+        diversity = {
+            name: (len(stat["unique"]) / stat["total"]) if stat["total"] > 0 else 0
+            for name, stat in token_stats.items()
+        }
+
+        diversity_series = pd.Series(diversity)
+
+        # 원래 TF-IDF 기반 기여도
+        raw_contrib = df.groupby("name")["importance"].sum()
+
+        # 단어 다양성 보정 적용
+        contrib_adjusted = (raw_contrib * diversity_series).sort_values(ascending=False)
 
         return render_template(
             "result.html",
             tables=df.to_html(classes="table table-striped"),
-            contrib=contrib.to_dict()
+            contrib=contrib_adjusted.to_dict()
         )
 
     return render_template("index.html")
